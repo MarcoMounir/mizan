@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+    <property name="LOG_PATH" value="${LOG_PATH:-logs}"/>
+
+    <!-- Console: structured JSON for production, readable for dev -->
+    <springProfile name="!local">
+        <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+            <encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
+                <pattern>{"timestamp":"%date{ISO8601}","level":"%level","logger":"%logger{36}","thread":"%thread","message":"%replace(%msg){'\"','\\\"'}","traceId":"%X{traceId:-}","userId":"%X{userId:-}","exception":"%replace(%xException){'\"','\\\"'}"}%n</pattern>
+            </encoder>
+        </appender>
+    </springProfile>
+
+    <springProfile name="local">
+        <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+            <encoder>
+                <pattern>%d{HH:mm:ss.SSS} %highlight(%-5level) [%thread] %cyan(%logger{24}) - %msg%n%xException</pattern>
+            </encoder>
+        </appender>
+    </springProfile>
+
+    <!-- File: always JSON, rolling daily -->
+    <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${LOG_PATH}/mizan-api.log</file>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <fileNamePattern>${LOG_PATH}/mizan-api.%d{yyyy-MM-dd}.log.gz</fileNamePattern>
+            <maxHistory>30</maxHistory>
+            <totalSizeCap>1GB</totalSizeCap>
+        </rollingPolicy>
+        <encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
+            <pattern>{"timestamp":"%date{ISO8601}","level":"%level","logger":"%logger{36}","thread":"%thread","message":"%replace(%msg){'\"','\\\"'}","traceId":"%X{traceId:-}","userId":"%X{userId:-}"}%n</pattern>
+        </encoder>
+    </appender>
+
+    <!-- Audit log: separate file for auth events -->
+    <appender name="AUDIT" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${LOG_PATH}/mizan-audit.log</file>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <fileNamePattern>${LOG_PATH}/mizan-audit.%d{yyyy-MM-dd}.log.gz</fileNamePattern>
+            <maxHistory>90</maxHistory>
+            <totalSizeCap>2GB</totalSizeCap>
+        </rollingPolicy>
+        <encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
+            <pattern>{"timestamp":"%date{ISO8601}","event":"%msg"}%n</pattern>
+        </encoder>
+    </appender>
+
+    <logger name="com.mizan.service.impl.AuditService" level="INFO" additivity="false">
+        <appender-ref ref="AUDIT"/>
+        <appender-ref ref="CONSOLE"/>
+    </logger>
+
+    <root level="INFO">
+        <appender-ref ref="CONSOLE"/>
+        <appender-ref ref="FILE"/>
+    </root>
+</configuration>

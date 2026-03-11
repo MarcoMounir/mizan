@@ -1,0 +1,55 @@
+# render.yaml — Render Blueprint (Infrastructure as Code)
+# Place this file in the ROOT of your GitHub repo.
+# Render reads it to auto-provision services.
+#
+# Free stack:
+#   - Render: Spring Boot web service (free tier)
+#   - Neon: PostgreSQL (external, free forever)
+#   - Upstash: Redis (external, free tier)
+#   - RabbitMQ: skipped for free tier (audit logs write synchronously)
+
+services:
+  - type: web
+    name: mizan-api
+    runtime: docker
+    dockerfilePath: ./backend/Dockerfile
+    dockerContext: ./backend
+    region: frankfurt  # closest to Egypt
+    plan: free
+    healthCheckPath: /api/actuator/health
+    envVars:
+      # ── Database (Neon free PostgreSQL) ──
+      - key: DB_HOST
+        sync: false  # set manually from Neon dashboard
+      - key: DB_PORT
+        value: "5432"
+      - key: DB_NAME
+        sync: false
+      - key: DB_USER
+        sync: false
+      - key: DB_PASS
+        sync: false
+
+      # ── Redis (Upstash free) ──
+      - key: REDIS_HOST
+        sync: false  # set from Upstash dashboard
+      - key: REDIS_PORT
+        sync: false
+      - key: REDIS_PASSWORD
+        sync: false
+
+      # ── Auth ──
+      - key: JWT_SECRET
+        generateValue: true  # Render auto-generates a random secret
+      - key: GOOGLE_CLIENT_ID
+        sync: false
+      - key: APPLE_CLIENT_ID
+        sync: false
+
+      # ── Spring profile ──
+      - key: SPRING_PROFILES_ACTIVE
+        value: "render"
+
+      # ── JVM optimization for 512MB free tier ──
+      - key: JAVA_OPTS
+        value: "-Xmx384m -Xms256m -XX:+UseG1GC"
