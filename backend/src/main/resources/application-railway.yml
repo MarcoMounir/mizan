@@ -1,0 +1,61 @@
+# application-railway.yml
+# Profile for Railway deployment
+# Activated by SPRING_PROFILES_ACTIVE=railway
+
+spring:
+  datasource:
+    url: jdbc:postgresql://${DB_HOST:${PGHOST:localhost}}:${DB_PORT:${PGPORT:5432}}/${DB_NAME:${PGDATABASE:mizan}}?sslmode=require
+    username: ${DB_USER:${PGUSER:mizan}}
+    password: ${DB_PASS:${PGPASSWORD:}}
+    hikari:
+      maximum-pool-size: 10
+      minimum-idle: 2
+      connection-timeout: 10000
+
+  data:
+    redis:
+      host: ${REDIS_HOST:${REDISHOST:localhost}}
+      port: ${REDIS_PORT:${REDISPORT:6379}}
+      password: ${REDIS_PASSWORD:${REDISPASSWORD:}}
+
+  # RabbitMQ — enable if you add it in Railway, otherwise disable
+  rabbitmq:
+    host: ${RABBITMQ_HOST:${RABBITMQHOST:localhost}}
+    port: ${RABBITMQ_PORT:${RABBITMQPORT:5672}}
+    username: ${RABBITMQ_USER:${RABBITMQ_DEFAULT_USER:guest}}
+    password: ${RABBITMQ_PASS:${RABBITMQ_DEFAULT_PASS:guest}}
+
+  flyway:
+    enabled: true
+    baseline-on-migrate: true
+
+mizan:
+  jwt:
+    secret: ${JWT_SECRET:change_me_in_production_64_chars_minimum_random_string_here_1234567890abcdef}
+    access-token-expiry: 900
+    refresh-token-expiry: 2592000
+    issuer: mizan-api
+
+  auth:
+    google:
+      client-id: ${GOOGLE_CLIENT_ID:not-configured}
+    apple:
+      client-id: ${APPLE_CLIENT_ID:not-configured}
+
+  rate-limit:
+    auth-requests-per-minute: 10
+    api-requests-per-minute: 100
+
+  market-data:
+    cache-ttl-seconds: 180
+
+logging:
+  level:
+    root: INFO
+    com.mizan: DEBUG
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
