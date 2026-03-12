@@ -33,6 +33,13 @@ public class RateLimitFilter extends OncePerRequestFilter {
                                     HttpServletResponse response,
                                     FilterChain filterChain) throws ServletException, IOException {
         String path = request.getRequestURI();
+
+        // Skip rate limiting for actuator
+        if (path.contains("/actuator")) {
+            filterChain.doFilter(request, response);
+            return;
+        }
+
         String clientIp = getClientIp(request);
 
         boolean isAuthEndpoint = path.startsWith("/api/auth/");

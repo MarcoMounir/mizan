@@ -1,33 +1,45 @@
 # application-railway.yml
-# Profile for Railway deployment
-# Activated by SPRING_PROFILES_ACTIVE=railway
+# Handles: dynamic PORT, optional Redis/RabbitMQ, Railway's env var names
+
+server:
+  port: ${PORT:8080}   # Railway injects PORT dynamically — this is critical
 
 spring:
+  # PostgreSQL — Railway auto-injects these when you add PostgreSQL plugin
   datasource:
-    url: jdbc:postgresql://${DB_HOST:${PGHOST:localhost}}:${DB_PORT:${PGPORT:5432}}/${DB_NAME:${PGDATABASE:mizan}}?sslmode=require
-    username: ${DB_USER:${PGUSER:mizan}}
-    password: ${DB_PASS:${PGPASSWORD:}}
+    url: jdbc:postgresql://${PGHOST:localhost}:${PGPORT:5432}/${PGDATABASE:railway}
+    username: ${PGUSER:railway}
+    password: ${PGPASSWORD:}
     hikari:
       maximum-pool-size: 10
       minimum-idle: 2
-      connection-timeout: 10000
+      connection-timeout: 20000
 
-  data:
-    redis:
-      host: ${REDIS_HOST:${REDISHOST:localhost}}
-      port: ${REDIS_PORT:${REDISPORT:6379}}
-      password: ${REDIS_PASSWORD:${REDISPASSWORD:}}
-
-  # RabbitMQ — enable if you add it in Railway, otherwise disable
-  rabbitmq:
-    host: ${RABBITMQ_HOST:${RABBITMQHOST:localhost}}
-    port: ${RABBITMQ_PORT:${RABBITMQPORT:5672}}
-    username: ${RABBITMQ_USER:${RABBITMQ_DEFAULT_USER:guest}}
-    password: ${RABBITMQ_PASS:${RABBITMQ_DEFAULT_PASS:guest}}
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+    open-in-view: false
 
   flyway:
     enabled: true
     baseline-on-migrate: true
+
+  # Redis — only connects if REDISHOST is set (Railway injects it when you add Redis plugin)
+  data:
+    redis:
+      host: ${REDISHOST:localhost}
+      port: ${REDISPORT:6379}
+      password: ${REDISPASSWORD:}
+      timeout: 3000
+      connect-timeout: 3000
+
+  # DISABLE RabbitMQ completely — don't even try to connect
+  autoconfigure:
+    exclude:
+      - org.springframework.boot.autoconfigure.amqp.RabbitAutoConfiguration
 
 mizan:
   jwt:
@@ -52,10 +64,15 @@ mizan:
 logging:
   level:
     root: INFO
-    com.mizan: DEBUG
+    com.mizan: INFO
+    org.springframework.security: WARN
+    org.hibernate.SQL: WARN
 
 management:
   endpoints:
     web:
       exposure:
         include: health,info
+  endpoint:
+    health:
+      show-details: always

@@ -33,7 +33,8 @@ public class SecurityConfig {
             .authorizeHttpRequests(auth -> auth
                 // Public endpoints
                 .requestMatchers("/auth/**").permitAll()
-                .requestMatchers("/actuator/health").permitAll()
+                .requestMatchers("/actuator/**").permitAll()
+                .requestMatchers("/market/validate-key").permitAll()
                 // Everything else requires authentication
                 .anyRequest().authenticated()
             )
