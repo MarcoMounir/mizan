@@ -5,6 +5,8 @@
   },
   "deploy": {
     "startCommand": "java -Xmx384m -Xms256m -XX:+UseG1GC -Dspring.profiles.active=railway -jar target/*.jar",
+    "healthcheckPath": "/api/actuator/health",
+    "healthcheckTimeout": 120,
     "restartPolicyType": "ON_FAILURE",
     "restartPolicyMaxRetries": 3
   }
