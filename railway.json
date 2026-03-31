@@ -4,7 +4,7 @@
     "builder": "NIXPACKS"
   },
   "deploy": {
-    "startCommand": "java -Xmx384m -Xms256m -XX:+UseG1GC -Dspring.profiles.active=railway -jar target/*.jar",
+    "startCommand": "java -Xmx384m -Xms256m -XX:+UseG1GC -jar target/*.jar --spring.profiles.active=railway",
     "healthcheckPath": "/api/actuator/health",
     "healthcheckTimeout": 120,
     "restartPolicyType": "ON_FAILURE",
